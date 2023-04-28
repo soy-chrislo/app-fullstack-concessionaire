@@ -1,12 +1,15 @@
-<script setup>
-  import DashboardView from './views/DashboardView.vue';
+<script>
+export default {
+  name: 'App',
+}
 </script>
 
 <template>
   <!-- <LoginView /> -->
-  <DashboardView />
+  <!-- <DashboardView /> -->
+  <router-view></router-view>
 </template>
 
-<style scoped>
+<style>
 
 </style>
