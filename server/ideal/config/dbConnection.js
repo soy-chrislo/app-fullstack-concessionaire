@@ -1,22 +1,24 @@
-const mysql = require("mysql")
+const mysql = require("mysql2")
+
+const dbUrl = 'mysql://root:12345@localhost:3307/app'
 
 const dbConfig = {
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "ideal"
+  host: "db",
+  user: "fernando",
+  password: "12345",
+  database: "users",
+  port: '3307'
 }
 
-function conectar(){
-  const connection = mysql.createConnection(dbConfig)
-  connection.connect((err) => {
-    if(err){
-      console.log("Error al conectar con base de datos")
-      return
-    }
-    console.log("Conexión exitosa")
-  })
-  return connection
-}
+const connection = mysql.createConnection(dbUrl);
 
-module.exports = conectar
+connection.connect((error) => {
+  if (error) {
+    console.log("Error connecting to DB")
+    console.log(error)
+    return
+  }
+  console.log("Connection established")
+})
+
+module.exports = connection

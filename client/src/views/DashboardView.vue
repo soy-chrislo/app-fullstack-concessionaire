@@ -1,6 +1,42 @@
 <script>
+// export default {
+//   name: 'DashboardView',
+// }
 export default {
-  name: 'DashboardView',
+  beforeMount() {
+    this.validateJwt().then()
+  },
+  methods: {
+    logout() {
+      localStorage.removeItem('token')
+      this.$router.push('/')
+    },
+    async validateJwt() {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token){
+        this.$router.push('/')
+        return
+      }
+      const response = await fetch('http://localhost:3000/api/validate', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token })
+      })
+      const data = await response.json()
+      if (!data.valid){
+        this.$router.push('/')
+      }
+    } catch (error) {
+      console.error(error)
+      this.$router.push('/')
+    }
+  }
+
+  }
+  
 }
 </script>
 
@@ -12,6 +48,9 @@ export default {
       </div>
       <nav>
         <ul>
+          <li>
+            <a href="#" @click="logout">Logout</a>
+          </li>
           <li><a href="#">Home</a></li>
           <li><a href="#">Cars</a></li>
           <li><a href="#">About Us</a></li>

@@ -1,6 +1,11 @@
 const router = require('express').Router()
 const { getUser, getUsers, createUser, updateUser, deleteUser } = require('../controllers/user')
 const { getCar, getCars, createCar, updateCar, deleteCar } = require('../controllers/car')
+const { login, testDb, validateToken } = require('../controllers/login')
+
+router.post('/login', login)
+router.post('/validate', validateToken);
+router.get('/test/db', testDb)
 
 router.get('/user', getUser)
 router.get('/users', getUsers)
