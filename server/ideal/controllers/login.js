@@ -12,15 +12,10 @@ function generateToken(payload){
 
 async function validateCredentials(email, password){
   try {
+    // SQL Injection
     // const query = `SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`
     const query = `SELECT * FROM users WHERE email = ? AND contrasenia = ?`
     const params = [email, password]
-    // const [rows, fields] = connection.promise().query(query, params)
-    // await connection.end()
-    // if(rows.length > 0){
-    //   return true
-    // }
-    // return false
     const result = await new Promise((resolve, reject) => {
       connection.query(query, params, (err, rows, fields) => {
         if (err) reject(err);
@@ -30,7 +25,7 @@ async function validateCredentials(email, password){
     if (result.length > 0) {
       return true
     } else {
-      return false
+      return false 
     }
   } catch (error) {
     console.log('[Server] Error al validar credenciales.')
@@ -42,8 +37,6 @@ async function validateCredentials(email, password){
 async function login(req, res){
   const { email, password } = req.body
   const result = await validateCredentials(email, password)
-  console.log(result + " result")
-  // const result = true
   if(!result){
     res.status(401).json({
       message: 'Credenciales inválidas'
@@ -79,7 +72,6 @@ async function testDb(req, res){
 
 function validateToken(req, res){
   const { token } = req.body
-  console.log("token", token)
   try {
     const decoded = jwt.verify(token, 'secret')
     res.json({

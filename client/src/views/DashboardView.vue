@@ -2,14 +2,141 @@
 // export default {
 //   name: 'DashboardView',
 // }
+import CarCard from '../components/CarCard.vue'
 export default {
+  data(){
+    return {
+      carros: [],
+      nombre: '',
+      precio: '',
+      descripcion: '',
+      imagen: '',
+      currentYear: new Date().getFullYear(),
+    }
+  },
   beforeMount() {
     this.validateJwt().then()
+    // this.getCars().then(
+    //   (data) => {
+    //     this.carros = data
+    //   }
+    // )
+    // this.carros = [
+    //   {
+    //     id: 1,
+    //     name: 'Toyota Camry',
+    //     price: 25000,
+    //     description: 'Este es el carro mas rapido del mercado, cacha pedazo de descripción mas genérica, pero necesito texto y no me gusta utilizar lorem impsum.',
+    //     image: 'toyota-camry.jpg'
+    //   },
+    //   {
+    //     id: 2,
+    //     name: 'Honda Accord',
+    //     price: 31000,
+    //     description: 'Este es el carro mas rapido del mercado, cacha pedazo de descripción mas genérica, pero necesito texto y no me gusta utilizar lorem impsum.',
+    //     image: 'honda-accord.png'
+    //   },
+    //   {
+    //     id: 3,
+    //     name: 'Ford Mustang',
+    //     price: 35000,
+    //     description: 'Este es el carro mas rapido del mercado, cacha pedazo de descripción mas genérica, pero necesito texto y no me gusta utilizar lorem impsum.',
+    //     image: 'ford-mustang.jpg'
+    //   }
+    // ]
+    this.getCars().then(
+      (data) => {
+        this.carros = data
+      }
+    )
+
+  },
+  created() {
+    this.emitter.on('update-car', this.updateCar)
+    // this.emitter.on('delete-car', this.deleteCar)
+    this.emitter.on('delete-car', this.deleteCar)
+  },
+  components: {
+    CarCard
   },
   methods: {
+    updateCar(car){
+      // alert(`Actualizando carro ${car.nombre}`)
+      this.id = car.id
+      this.nombre = car.nombre
+      this.precio = car.precio
+      this.descripcion = car.descripcion
+      this.imagen = car.imagen
+      this.openEditor();
+      
+    },
+    updateCarQuery(){
+      const car = {
+        id: this.id,
+        nombre: this.nombre,
+        precio: this.precio,
+        descripcion: this.descripcion,
+        imagen: this.imagen
+      }
+      fetch(`http://localhost:3000/api/car`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(car)
+      })
+      .then(response => response.json())
+      .then(data => alert(data.message))
+      this.closeEditor();
+    },
+    deleteCar(car){
+      // alert(`Eliminando carro ${car.id}`)
+      fetch(`http://localhost:3000/api/car/${car.id}`,
+      // fetch(`http://localhost:3000/api/car`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // body: JSON.stringify(car)
+      })
+      .then(response => response.json())
+      .then(data => alert(data.message))
+    },
     logout() {
       localStorage.removeItem('token')
       this.$router.push('/')
+    },
+    getCars(){
+      return new Promise((resolve, reject) => {
+        fetch('http://localhost:3000/api/cars')
+        .then(response => response.json())
+        .then(data => resolve(data))
+        .catch(error => reject(error))
+      })
+    },
+    createCar(){
+      const newCar = {
+        nombre: this.nombre,
+        precio: this.precio,
+        descripcion: this.descripcion,
+        imagen: this.imagen
+      }
+      fetch('http://localhost:3000/api/car',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newCar)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message)
+      })
+      this.closeMenu();
+
     },
     async validateJwt() {
     try {
@@ -33,11 +160,23 @@ export default {
       console.error(error)
       this.$router.push('/')
     }
+  },
+  openMenu(){
+    this.$refs.ventanaEmergente.style.display = "flex"
+  },
+  closeMenu(){
+    this.$refs.ventanaEmergente.style.display = "none"
+  },
+  openEditor(){
+    this.$refs.ventanaEmergenteEdicion.style.display = "flex"
+  },
+  closeEditor(){
+    this.$refs.ventanaEmergenteEdicion.style.display = "none"
+  },
+  sendForm(event){
+    event.preventDefault()
   }
-
-  }
-  
-}
+}} 
 </script>
 
 
@@ -51,56 +190,85 @@ export default {
           <li>
             <a href="#" @click="logout">Logout</a>
           </li>
-          <li><a href="#">Home</a></li>
+          <!-- <li><a href="#">Home</a></li>
           <li><a href="#">Cars</a></li>
           <li><a href="#">About Us</a></li>
-          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Contact Us</a></li> -->
         </ul>
       </nav>
     </header>
     <main>
-      <section id="banner" class="banner">
+      <!-- <section id="banner" class="banner">
         <h2>Welcome to Car Vendor</h2>
         <p>
           We offer a wide selection of high-quality cars at competitive prices.
         </p>
         <a href="#" class="btn">View Our Cars</a>
-      </section>
+      </section> -->
       <section id="featured-cars" class="featured-cars-section">
-        <h2>Featured Cars</h2>
-        <div class="featured-cars">
+        <a href="#" class="btn" @click="openMenu">Agregar carro</a>
+        <div ref="ventanaEmergente" class="ventana-emergente" >
 
-          <div class="car">
-            <!-- <img src="car1.jpg" alt="Car 1" class="car-image" /> -->
+          <p>Agregue la información de los siguientes campos:</p>
+          <form @submit="sendForm">
+            <input v-model="nombre" type="text" placeholder="Nombre del carro" />
+            <input v-model="precio" type="text" placeholder="Precio" />
+            <input v-model="descripcion" type="text" placeholder="Descripción" />
+            <input v-model="imagen" type="text" placeholder="Imagen" />
+            <button @click="createCar" type="submit">Agregar</button>
+          </form>
+          <button @click="closeMenu">X</button>        
+        </div>
+        <div ref="ventanaEmergenteEdicion" class="ventana-emergente" >
+          <p>Modifique la información de los siguientes campos:</p>
+          <form @submit="sendForm">
+            <input v-model="nombre" type="text" placeholder="Nombre del carro" />
+            <input v-model="precio" type="text" placeholder="Precio" />
+            <input v-model="descripcion" type="text" placeholder="Descripción" />
+            <input v-model="imagen" type="text" placeholder="Imagen" />
+            <button @click="updateCarQuery" type="submit">Editar</button>
+          </form>
+          <button @click="closeEditor">X</button>        
+          </div>
+        <div class="featured-cars">
+          <div v-for="carro in carros" :key="carro.id">
+            <CarCard :id="carro.id" :name="carro.nombre" :price="carro.precio" :description="carro.descripcion" :image="carro.imagen"/>
+          </div>
+          <!-- <div class="car">
+            <img src="car1.jpg" alt="Car 1" class="car-image" /> 
             <div class="car-image car1"></div>
             <h3>2021 Toyota Camry</h3>
             <p>$25,000</p>
-            <a href="#" class="btn">Learn More</a>
+            <p class="card-description">Este es el carro mas rapido del mercado, cacha pedazo de descripción mas genérica, pero necesito texto y no me gusta utilizar lorem impsum.</p>
+            <div class="btn-container">
+              <a href="#" class="btn">Editar</a>
+              <a href="#" class="btn">Eliminar</a>
+            </div>
           </div>
           <div class="car">
-            <!-- <img src="car2.jpg" alt="Car 2" class="car-image" /> -->
+            <img src="car2.jpg" alt="Car 2" class="car-image" />
             <div class="car-image car2"></div>
             <h3>2021 Honda Accord</h3>
             <p>$26,000</p>
             <a href="#" class="btn">Learn More</a>
           </div>
           <div class="car">
-            <!-- <img src="car3.jpg" alt="Car 3" class="car-image" /> -->
+            <img src="car3.jpg" alt="Car 3" class="car-image" />
             <div class="car-image car3"></div>
             <h3>2021 Ford Mustang</h3>
             <p>$35,000</p>
             <a href="#" class="btn">Learn More</a>
           </div>
           <div class="car">
-            <!-- <img src="car3.jpg" alt="Car 3" class="car-image" /> -->
+            <img src="car3.jpg" alt="Car 3" class="car-image" /> 
             <div class="car-image car3"></div>
             <h3>2021 Ford Mustang</h3>
             <p>$35,000</p>
             <a href="#" class="btn">Learn More</a>
-          </div>
+          </div> -->
         </div>
       </section>
-      <section id="about" class="about">
+      <!-- <section id="about" class="about">
         <h2>About Us</h2>
         <p>
           We are a family-owned car dealership that has been in business for
@@ -108,8 +276,8 @@ export default {
           best possible car buying experience.
         </p>
         <a href="#" class="btn">Learn More</a>
-      </section>
-      <section id="contact" class="contact">
+      </section> -->
+      <!-- <section id="contact" class="contact">
         <div class="">
           <h2>Contact Us</h2>
         </div>
@@ -122,15 +290,75 @@ export default {
           <textarea id="message" name="message" required></textarea>
           <button type="submit" class="btn">Send Message</button>
         </form>
-      </section>
+      </section> -->
     </main>
     <footer>
-      <p>Car Vendor &copy; 2023</p>
+      <p>Car Vendor &copy; {{ currentYear }}</p>
     </footer>
 </template>
 
 
 <style scoped>
+.ventana-emergente {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  top: 6vh;
+  left: 6vw;
+  width: 85vw;
+  height: auto;
+  background-color: white;
+  border-radius: 10px;
+  border: 2px solid black;
+  padding: 20px;
+  z-index: 999;
+}
+
+.ventana-emergente p {
+  color: black;
+}
+
+.ventana-emergente > button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: none;
+  color: black;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ventana-emergente form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 500px;
+}
+
+.ventana-emergente form input {
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid black;
+  padding: 10px;
+}
+
+.ventana-emergente form button {
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid black;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ventana-emergente form button:hover {
+  background-color: white;
+  color: black;
+}
+
 /* Estilos Globales */
 * {
   box-sizing: border-box;
@@ -253,6 +481,39 @@ a {
 
 }
 
+.featured-cars-section > .btn {
+  background-color: #757575;
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-left: 40px;
+}
+
+.featured-cars-section .btn:hover {
+  background-color: #474747;
+  color: #fff;
+}
+
+.featured-cars .car .card-description {
+  max-width: 350px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.featured-cars .btn-container{
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.featured-cars .btn-container a:last-child:hover {
+  background-color: red;
+}
+
 .featured-cars .car {
   background-color: #ffffff;
   border-radius: 10px;
@@ -262,7 +523,7 @@ a {
   justify-content: center;
   align-items: center;
   margin-bottom: 30px;
-
+  height: 400px;
 }
 
 .car1 {

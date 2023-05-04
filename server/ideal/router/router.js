@@ -17,6 +17,6 @@ router.get('/car', getCar)
 router.get('/cars', getCars)
 router.post('/car', createCar)
 router.put('/car', updateCar)
-router.delete('/car', deleteCar)
+router.delete('/car/:id', deleteCar)
 
 module.exports = router

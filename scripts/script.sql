@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS carros (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(20),
   precio VARCHAR(20),
-  descripcion VARCHAR(50),
+  descripcion VARCHAR(200),
   imagen VARCHAR(30)
 );
 
